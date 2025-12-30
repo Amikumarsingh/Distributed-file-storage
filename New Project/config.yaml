@@ -1,0 +1,38 @@
+# Distributed File Storage System Configuration
+
+# Cluster settings
+cluster:
+  replication_factor: 3
+  virtual_nodes: 150
+  health_check_interval: 30  # seconds
+  replication_check_interval: 300  # seconds
+
+# Storage settings
+storage:
+  data_directory: "./data"
+  max_file_size: 1073741824  # 1GB in bytes
+  chunk_size: 1048576  # 1MB in bytes
+
+# Network settings
+network:
+  default_port: 8001
+  connection_timeout: 10  # seconds
+  request_timeout: 30  # seconds
+
+# Logging settings
+logging:
+  level: "INFO"
+  format: "json"
+  file: null  # null for stdout, or specify file path
+
+# Web interface settings
+web:
+  port: 8080
+  host: "0.0.0.0"
+  cors_origins: ["*"]
+
+# Monitoring settings
+monitoring:
+  metrics_enabled: true
+  metrics_port: 9090
+  health_endpoint: "/health"

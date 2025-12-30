@@ -1,0 +1,197 @@
+syntax = "proto3";
+
+package dfs;
+
+// File storage service
+service FileStorage {
+    rpc UploadFile(UploadFileRequest) returns (UploadFileResponse);
+    rpc DownloadFile(DownloadFileRequest) returns (DownloadFileResponse);
+    rpc DeleteFile(DeleteFileRequest) returns (DeleteFileResponse);
+    rpc ListFiles(ListFilesRequest) returns (ListFilesResponse);
+    rpc GetFileInfo(GetFileInfoRequest) returns (GetFileInfoResponse);
+}
+
+// Cluster management service
+service ClusterManager {
+    rpc JoinCluster(JoinClusterRequest) returns (JoinClusterResponse);
+    rpc LeaveCluster(LeaveClusterRequest) returns (LeaveClusterResponse);
+    rpc GetClusterStatus(GetClusterStatusRequest) returns (GetClusterStatusResponse);
+    rpc Rebalance(RebalanceRequest) returns (RebalanceResponse);
+    rpc HealthCheck(HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Node-to-node communication service
+service NodeService {
+    rpc StoreChunk(StoreChunkRequest) returns (StoreChunkResponse);
+    rpc RetrieveChunk(RetrieveChunkRequest) returns (RetrieveChunkResponse);
+    rpc DeleteChunk(DeleteChunkRequest) returns (DeleteChunkResponse);
+    rpc ReplicateFile(ReplicateFileRequest) returns (ReplicateFileResponse);
+}
+
+// Messages
+message UploadFileRequest {
+    string filename = 1;
+    bytes data = 2;
+    string checksum = 3;
+    map<string, string> metadata = 4;
+}
+
+message UploadFileResponse {
+    bool success = 1;
+    string message = 2;
+    string file_id = 3;
+    repeated string node_ids = 4;
+}
+
+message DownloadFileRequest {
+    string filename = 1;
+    string version = 2;
+}
+
+message DownloadFileResponse {
+    bool success = 1;
+    string message = 2;
+    bytes data = 3;
+    string checksum = 4;
+    map<string, string> metadata = 5;
+}
+
+message DeleteFileRequest {
+    string filename = 1;
+}
+
+message DeleteFileResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ListFilesRequest {
+    string prefix = 1;
+    int32 limit = 2;
+}
+
+message ListFilesResponse {
+    repeated FileInfo files = 1;
+}
+
+message GetFileInfoRequest {
+    string filename = 1;
+}
+
+message GetFileInfoResponse {
+    bool success = 1;
+    FileInfo file_info = 2;
+}
+
+message FileInfo {
+    string filename = 1;
+    int64 size = 2;
+    string checksum = 3;
+    int64 created_at = 4;
+    int64 modified_at = 5;
+    string version = 6;
+    repeated string replicas = 7;
+    map<string, string> metadata = 8;
+}
+
+message JoinClusterRequest {
+    string node_id = 1;
+    string address = 2;
+    int32 port = 3;
+}
+
+message JoinClusterResponse {
+    bool success = 1;
+    string message = 2;
+    repeated NodeInfo existing_nodes = 3;
+}
+
+message LeaveClusterRequest {
+    string node_id = 1;
+}
+
+message LeaveClusterResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message GetClusterStatusRequest {}
+
+message GetClusterStatusResponse {
+    repeated NodeInfo nodes = 1;
+    int32 total_files = 2;
+    int64 total_size = 3;
+}
+
+message RebalanceRequest {}
+
+message RebalanceResponse {
+    bool success = 1;
+    string message = 2;
+    int32 files_moved = 3;
+}
+
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    bool healthy = 1;
+    string status = 2;
+    map<string, string> metrics = 3;
+}
+
+message NodeInfo {
+    string node_id = 1;
+    string address = 2;
+    int32 port = 3;
+    bool healthy = 4;
+    int64 last_seen = 5;
+    int64 storage_used = 6;
+    int64 storage_available = 7;
+}
+
+message StoreChunkRequest {
+    string file_id = 1;
+    string chunk_id = 2;
+    bytes data = 3;
+    string checksum = 4;
+}
+
+message StoreChunkResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message RetrieveChunkRequest {
+    string file_id = 1;
+    string chunk_id = 2;
+}
+
+message RetrieveChunkResponse {
+    bool success = 1;
+    string message = 2;
+    bytes data = 3;
+    string checksum = 4;
+}
+
+message DeleteChunkRequest {
+    string file_id = 1;
+    string chunk_id = 2;
+}
+
+message DeleteChunkResponse {
+    bool success = 1;
+    string message = 2;
+}
+
+message ReplicateFileRequest {
+    string file_id = 1;
+    string filename = 2;
+    bytes data = 3;
+    string checksum = 4;
+    map<string, string> metadata = 5;
+}
+
+message ReplicateFileResponse {
+    bool success = 1;
+    string message = 2;
+}

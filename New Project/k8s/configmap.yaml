@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dfs-config
+  namespace: dfs
+data:
+  replication_factor: "3"
+  log_level: "INFO"

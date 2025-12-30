@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: dfs-headless
+  namespace: dfs
+spec:
+  clusterIP: None
+  selector:
+    app: dfs-node
+  ports:
+  - port: 8001
+    targetPort: 8001
+    name: grpc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dfs-service
+  namespace: dfs
+spec:
+  selector:
+    app: dfs-node
+  ports:
+  - port: 8001
+    targetPort: 8001
+    name: grpc
+  type: LoadBalancer
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dfs-web
+  namespace: dfs
+spec:
+  selector:
+    app: dfs-web
+  ports:
+  - port: 80
+    targetPort: 8080
+    name: http
+  type: LoadBalancer

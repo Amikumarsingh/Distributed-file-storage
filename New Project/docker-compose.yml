@@ -1,0 +1,96 @@
+version: '3.8'
+
+services:
+  dfs-node-1:
+    build: .
+    container_name: dfs-node-1
+    ports:
+      - "8001:8001"
+    volumes:
+      - dfs-data-1:/data
+    environment:
+      - NODE_ID=node-1
+      - ADDRESS=0.0.0.0
+      - PORT=8001
+      - DATA_DIR=/data
+      - REPLICATION_FACTOR=3
+    command: ["python", "-m", "dfs.node.server", "--address", "0.0.0.0", "--port", "8001", "--data-dir", "/data"]
+    networks:
+      - dfs-network
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:8001'); channel.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dfs-node-2:
+    build: .
+    container_name: dfs-node-2
+    ports:
+      - "8002:8001"
+    volumes:
+      - dfs-data-2:/data
+    environment:
+      - NODE_ID=node-2
+      - ADDRESS=0.0.0.0
+      - PORT=8001
+      - DATA_DIR=/data
+      - REPLICATION_FACTOR=3
+    command: ["python", "-m", "dfs.node.server", "--address", "0.0.0.0", "--port", "8001", "--data-dir", "/data", "--peers", "dfs-node-1:8001"]
+    networks:
+      - dfs-network
+    depends_on:
+      - dfs-node-1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:8001'); channel.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dfs-node-3:
+    build: .
+    container_name: dfs-node-3
+    ports:
+      - "8003:8001"
+    volumes:
+      - dfs-data-3:/data
+    environment:
+      - NODE_ID=node-3
+      - ADDRESS=0.0.0.0
+      - PORT=8001
+      - DATA_DIR=/data
+      - REPLICATION_FACTOR=3
+    command: ["python", "-m", "dfs.node.server", "--address", "0.0.0.0", "--port", "8001", "--data-dir", "/data", "--peers", "dfs-node-1:8001"]
+    networks:
+      - dfs-network
+    depends_on:
+      - dfs-node-1
+    healthcheck:
+      test: ["CMD", "python", "-c", "import grpc; channel = grpc.insecure_channel('localhost:8001'); channel.close()"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  dfs-web:
+    build: .
+    container_name: dfs-web
+    ports:
+      - "8080:8080"
+    environment:
+      - DFS_NODES=dfs-node-1:8001,dfs-node-2:8001,dfs-node-3:8001
+    command: ["python", "web/app.py"]
+    networks:
+      - dfs-network
+    depends_on:
+      - dfs-node-1
+      - dfs-node-2
+      - dfs-node-3
+
+volumes:
+  dfs-data-1:
+  dfs-data-2:
+  dfs-data-3:
+
+networks:
+  dfs-network:
+    driver: bridge

@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: dfs-nodes
+  namespace: dfs
+spec:
+  serviceName: dfs-headless
+  replicas: 3
+  selector:
+    matchLabels:
+      app: dfs-node
+  template:
+    metadata:
+      labels:
+        app: dfs-node
+    spec:
+      containers:
+      - name: dfs-node
+        image: dfs-node:latest
+        ports:
+        - containerPort: 8001
+          name: grpc
+        env:
+        - name: ADDRESS
+          value: "0.0.0.0"
+        - name: PORT
+          value: "8001"
+        - name: DATA_DIR
+          value: "/data"
+        - name: REPLICATION_FACTOR
+          valueFrom:
+            configMapKeyRef:
+              name: dfs-config
+              key: replication_factor
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: PEERS
+          value: "dfs-nodes-0.dfs-headless.dfs.svc.cluster.local:8001"
+        volumeMounts:
+        - name: data
+          mountPath: /data
+        livenessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import grpc; channel = grpc.insecure_channel('localhost:8001'); channel.close()"
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          exec:
+            command:
+            - python
+            - -c
+            - "import grpc; channel = grpc.insecure_channel('localhost:8001'); channel.close()"
+          initialDelaySeconds: 10
+          periodSeconds: 10
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
